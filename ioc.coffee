@@ -11,22 +11,22 @@ _assign = (baseObj, finalObj) ->
     keys = Object.keys baseObj
     _each keys, (k) -> finalObj[k] = baseObj[k]
     finalObj
-
+annotationKey = "__annotations__"
 annotate = (ctor) ->
-    ctor.annotations = {}
+    ctor[annotationKey] = {}
 
     annotations =
         asSingleton: ->
-            ctor.annotations.$singleton = true
+            ctor[annotationKey].$singleton = true
             @
         extends: (baseClass) ->
-            ctor.annotations.$extends = baseClass
+            ctor[annotationKey].$extends = baseClass
             @
         inject: (args...) ->
-            ctor.annotations.$inject = args
+            ctor[annotationKey].$inject = args
             @
 isAnnotated = (ctor, annotation) ->
-    ctor.annotations?[annotation]
+    ctor[annotationKey]?[annotation]
 
 class Injector
     constructor: ->
@@ -40,10 +40,10 @@ class Injector
 
         protoTemp = _assign classCtor::, {}
         if isAnnotated classCtor, '$extends'
-            baseClass = @get classCtor.annotations.$extends
+            baseClass = @get classCtor[annotationKey].$extends
             classCtor:: = baseClass
             classCtor.__super__ = {}
-            _assign classCtor.annotations.$extends::, classCtor.__super__
+            _assign classCtor[annotationKey].$extends::, classCtor.__super__
 
         _assign protoTemp, classCtor::
 
@@ -65,7 +65,7 @@ class Injector
 
         # Create Dependency Map
         if isAnnotated classCtor, '$inject'
-            depMap = @_createInstances classCtor.annotations.$inject
+            depMap = @_createInstances classCtor[annotationKey].$inject
         instance = @_resolveWithArgs classCtor, depMap
 
         # Add to singleton cache
