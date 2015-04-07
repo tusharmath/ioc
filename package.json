@@ -4,7 +4,7 @@
   "description": "a simple ioc container",
   "main": "ioc.ts",
   "scripts": {
-    "test": "mocha test.ioc.ts "
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
