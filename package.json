@@ -1,5 +1,5 @@
 {
-  "name": "ioc",
+  "name": "node-ioc",
   "version": "1.0.0",
   "description": "a simple ioc container",
   "main": "ioc.ts",
