@@ -1,43 +1,77 @@
 _bind = Function.prototype.bind
 _each = (arr, callback, ctx) ->
     callback.call ctx, i for i in arr
-
 _find = (arr, callback, ctx) ->
     validItem = null;
     _each arr, (i) -> validItem = i if callback.call ctx, i
     validItem
-
 _map = (arr, callback, ctx) ->
     callback.call ctx, i for i in arr
+_assign = (baseObj, finalObj) ->
+    keys = Object.keys baseObj
+    _each keys, (k) -> finalObj[k] = baseObj[k]
+    finalObj
+
+annotate = (ctor) ->
+    ctor.annotations = {}
+
+    annotations =
+        asSingleton: ->
+            ctor.annotations.$singleton = true
+            @
+        extends: (baseClass) ->
+            ctor.annotations.$extends = baseClass
+            @
+        inject: (args...) ->
+            ctor.annotations.$inject = args
+            @
+isAnnotated = (ctor, annotation) ->
+    ctor.annotations?[annotation]
 
 class Injector
     constructor: ->
         @_singletons = []
-    get: (classCtor) ->
-        dependencies = [];
-        return this if classCtor is Injector
+    _getFromCache: (classCtor) ->
+        return null if not isAnnotated classCtor, '$singleton'
+        _find @_singletons, (i) -> i instanceof classCtor
+    _createInstances: (ctorList) ->
+        _map ctorList, (i) => this.get i
+    _resolvePrototype: (classCtor) ->
 
-        # Is a singleton
-        if classCtor.$singleton
-            instance = _find @_singletons, (i) -> i instanceof classCtor
+        protoTemp = _assign classCtor::, {}
+        if isAnnotated classCtor, '$extends'
+            baseClass = @get classCtor.annotations.$extends
+            classCtor:: = baseClass
+            classCtor.__super__ = {}
+            _assign classCtor.annotations.$extends::, classCtor.__super__
 
-        if instance
-            return instance
+        _assign protoTemp, classCtor::
 
-        if classCtor.$inject
-            dependencies = _map classCtor.$inject, (classCtor) =>
-                this.get classCtor
-
+    _resolveWithArgs: (classCtor, args) ->
         class Ctor
             constructor: (args...) -> classCtor.apply @, args
-        Ctor:: = classCtor::
+        Ctor:: = @_resolvePrototype classCtor
+        args.unshift null
+        _ctor = _bind.apply Ctor, args
+        new _ctor
+    get: (classCtor) ->
+        depMap = [];
 
-        dependencies.unshift null
-        _ctor = _bind.apply Ctor, dependencies
-        instance = new _ctor
+        # Is self
+        return this if classCtor is Injector
 
-        if classCtor.$singleton
-            this._singletons.push instance
+        # Try From cache
+        return instance if instance = @_getFromCache classCtor
+
+        # Create Dependency Map
+        if isAnnotated classCtor, '$inject'
+            depMap = @_createInstances classCtor.annotations.$inject
+        instance = @_resolveWithArgs classCtor, depMap
+
+        # Add to singleton cache
+        if isAnnotated classCtor, '$singleton'
+            @_singletons.push instance
         instance;
 
+Injector.annotate = annotate
 module.exports = Injector
