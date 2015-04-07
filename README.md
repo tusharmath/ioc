@@ -26,9 +26,9 @@ Q.prototype.print = function (){
 annotate(Q)
     .inject(B, C) //Dependcies
     .extends(A) // Inheritence
-    .asSingleton //Default: Transient
+    .asSingleton() //Default: Transient
 
 
 ioc = new Injector();
-ioc.get(Q);
+var q = ioc.get(Q); //Instantiate Q
 ```
