@@ -1,0 +1,2 @@
+--require chai
+--compilers coffee:coffee-script/register

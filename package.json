@@ -1,0 +1,14 @@
+{
+  "name": "ioc",
+  "version": "1.0.0",
+  "description": "a simple ioc container",
+  "main": "ioc.ts",
+  "scripts": {
+    "test": "mocha test.ioc.ts "
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^2.2.0"
+  }
+}
