@@ -1,31 +1,20 @@
+_ = require 'lodash'
 class Injector
     constructor: ->
         @_singletons = []
 
     # Private Functions
     _bind = Function.prototype.bind
-    _each = (arr, callback, ctx) ->
-        callback.call ctx, i for i in arr
-    _find = (arr, callback, ctx) ->
-        validItem = null;
-        _each arr, (i) -> validItem = i if callback.call ctx, i
-        validItem
-    _map = (arr, callback, ctx) ->
-        callback.call ctx, i for i in arr
-    _assign = (baseObj, finalObj) ->
-        keys = Object.keys baseObj
-        _each keys, (k) -> finalObj[k] = baseObj[k]
-        finalObj
     A_KEY = "__annotations__"
     isAnnotated = (ctor, annotation) ->
         ctor[A_KEY]?[annotation]
     _resolvePrototype = (classCtor, baseClass) ->
-        protoTemp = _assign classCtor::, {}
+        protoTemp = _.assign {}, classCtor::
         if isAnnotated classCtor, '$extends'
             classCtor:: = baseClass
             classCtor.__super__ = {}
-            _assign classCtor[A_KEY].$extends::, classCtor.__super__
-        _assign protoTemp, classCtor::
+            _.assign classCtor.__super__, classCtor[A_KEY].$extends::
+        _.assign classCtor::, protoTemp
     _resolve = (classCtor, args, baseClass) ->
         class Ctor
             constructor: (args...) -> classCtor.apply @, args
@@ -35,7 +24,7 @@ class Injector
         new _ctor
     _getFromCache: (classCtor) ->
         return null if not isAnnotated classCtor, '$singleton'
-        _find @_singletons, (i) -> i instanceof classCtor
+        _.find @_singletons, (i) -> i instanceof classCtor
     _getBaseClass: (baseClass) ->
         @get classCtor[A_KEY].$extends
     # Static annotation
@@ -67,10 +56,12 @@ class Injector
 
         # Create Dependency Map
         if isAnnotated classCtor, '$inject'
-            depMap = _map classCtor[A_KEY].$inject, (i) => @get i
+            depMap = _.map classCtor[A_KEY].$inject, (i) => @get i
 
         # Get Base class instance
         if isAnnotated classCtor, '$extends'
+            if isAnnotated classCtor[A_KEY].$extends, '$singleton'
+                throw new Error "can not instantiate if the class extends a singleton"
             baseClass = @get classCtor[A_KEY].$extends
 
         # Resolve Instance
