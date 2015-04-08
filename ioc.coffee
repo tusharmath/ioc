@@ -1,19 +1,21 @@
 _ = require 'lodash'
+{AnnotatedClass} = require './annotations'
 class Injector
     constructor: ->
         @_singletons = []
 
     # Private Functions
     _bind = Function.prototype.bind
-    A_KEY = "__annotations__"
-    isAnnotated = (ctor, annotation) ->
-        ctor[A_KEY]?[annotation]
+    A_KEY = AnnotatedClass.A_KEY
+    AC = AnnotatedClass
+
     _resolvePrototype = (classCtor, baseClass) ->
         protoTemp = _.assign {}, classCtor::
-        if isAnnotated classCtor, '$extends'
+        if AC.isExtension classCtor
             classCtor:: = baseClass
             classCtor.__super__ = {}
-            _.assign classCtor.__super__, classCtor[A_KEY].$extends::
+            baseExtension = AC.getParent classCtor
+            _.assign classCtor.__super__, baseExtension::
         _.assign classCtor::, protoTemp
     _resolve = (classCtor, args, baseClass) ->
         class Ctor
@@ -23,27 +25,15 @@ class Injector
         _ctor = _bind.apply Ctor, args
         new _ctor
     _getFromCache: (classCtor) ->
-        return null if not isAnnotated classCtor, '$singleton'
+        return null if not AC.isSingleton classCtor
         _.find @_singletons, (i) -> i instanceof classCtor
     _getBaseClass: (baseClass) ->
-        @get classCtor[A_KEY].$extends
+        baseExtension = AC.getParent classCtor
+        @get baseExtension
     # Static annotation
     Injector.annotate = annotate = (ctor) ->
         ctor[A_KEY] = {}
-
-        annotations =
-            asTransient: ->
-                ctor[A_KEY].$singleton = false
-                @
-            asSingleton: ->
-                ctor[A_KEY].$singleton = true
-                @
-            extends: (baseClass) ->
-                ctor[A_KEY].$extends = baseClass
-                @
-            inject: (args...) ->
-                ctor[A_KEY].$inject = args
-                @
+        new AnnotatedClass ctor
 
     get: (classCtor) ->
         depMap = [];
@@ -55,20 +45,22 @@ class Injector
         return instance if instance = @_getFromCache classCtor
 
         # Create Dependency Map
-        if isAnnotated classCtor, '$inject'
-            depMap = _.map classCtor[A_KEY].$inject, (i) => @get i
+        if AC.isDependent classCtor
+            depMap = _.map AC.getDependencies(classCtor), (i) => @get i
 
         # Get Base class instance
-        if isAnnotated classCtor, '$extends'
-            if isAnnotated classCtor[A_KEY].$extends, '$singleton'
+        if AC.isExtension classCtor
+            baseExtension = AC.getParent classCtor
+            if AC.isSingleton baseExtension
                 throw new Error "can not instantiate if the class extends a singleton"
-            baseClass = @get classCtor[A_KEY].$extends
+            baseExtension = AC.getParent classCtor
+            baseClass = @get baseExtension
 
         # Resolve Instance
         instance = _resolve classCtor, depMap, baseClass
 
         # Add to singleton cache
-        if isAnnotated classCtor, '$singleton'
+        if AC.isSingleton classCtor
             @_singletons.push instance
         instance;
 
