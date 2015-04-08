@@ -1,4 +1,5 @@
 should = require('chai').should()
+expect = require('chai').expect
 Injector = require '../ioc'
 describe 'Injector', ->
 	beforeEach ->
@@ -35,3 +36,14 @@ describe 'Injector', ->
 
 			@annotate(B).extends A
 			@mod.get(B).print().should.equal "Hello World"
+		it 'throws if base class is a singleton', ->
+			class Base
+				print: -> "World"
+			class Child1
+				print: ->
+					"Hello " + super
+			@annotate(Base).asSingleton()
+			@annotate(Child1).extends Base
+
+			expect => @mod.get(Child1)
+			.to.throw "can not instantiate if the class extends a singleton"

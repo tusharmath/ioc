@@ -43,6 +43,9 @@ class Injector
         ctor[A_KEY] = {}
 
         annotations =
+            asTransient: ->
+                ctor[A_KEY].$singleton = false
+                @
             asSingleton: ->
                 ctor[A_KEY].$singleton = true
                 @
