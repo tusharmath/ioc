@@ -27,9 +27,6 @@ class Injector
     _getFromCache: (classCtor) ->
         return null if not AC.isSingleton classCtor
         _.find @_singletons, (i) -> i instanceof classCtor
-    _getBaseClass: (baseClass) ->
-        baseExtension = AC.getParent classCtor
-        @get baseExtension
     # Static annotation
     Injector.annotate = annotate = (ctor) ->
         ctor[A_KEY] = {}
@@ -53,8 +50,7 @@ class Injector
             baseExtension = AC.getParent classCtor
             if AC.isSingleton baseExtension
                 throw new Error "can not instantiate if the class extends a singleton"
-            baseExtension = AC.getParent classCtor
-            baseClass = @get baseExtension
+            baseClass = @get AC.getParent classCtor
 
         # Resolve Instance
         instance = _resolve classCtor, depMap, baseClass

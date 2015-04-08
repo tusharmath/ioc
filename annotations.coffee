@@ -1,47 +1,64 @@
 _ = require 'lodash'
 class SingletonAnnotation
+SingletonAnnotation.A_KEY = '$lifeCycle'
 class TransientAnnotation
+TransientAnnotation.A_KEY = '$lifeCycle'
 class ExtendsAnnotation
     constructor: (@baseClass) ->
+ExtendsAnnotation.A_KEY = '$extends'
 class InjectAnnotation
-    constructor: (@args) ->
+    constructor: (@deps) ->
+InjectAnnotation.A_KEY = '$inject'
 
 class AnnotatedClass
     A_KEY = AnnotatedClass.A_KEY = "__annotations__"
+    AC = AnnotatedClass
     constructor: (@classCtor) ->
         @classCtor[A_KEY] = @annotations = {}
-    # isSingleton: -> @annotations.$singleton
-    # hasParent: -> @annotations.$extends isnt null
-    # getInject
-
     # Chained
     asSingleton: ->
-        @annotations.$singleton = true
+        @annotations[SingletonAnnotation.A_KEY] = new SingletonAnnotation
         @
     asTransient: ->
-        @annotations.$singleton = false
+        @annotations[TransientAnnotation.A_KEY] = new TransientAnnotation
         @
     extends: (baseClass) ->
-        @annotations.$extends = baseClass
+        @annotations[ExtendsAnnotation.A_KEY] = new ExtendsAnnotation baseClass
         @
     inject: (args...) ->
-        @annotations.$inject = args
+        @annotations[InjectAnnotation.A_KEY] = new InjectAnnotation args
         @
 
     # $extends
-    AnnotatedClass.isExtension = (classCtor) -> AnnotatedClass.isAnnotated classCtor, '$extends'
-    AnnotatedClass.getParent = (classCtor) -> AnnotatedClass.getAnnotation classCtor, '$extends'
+    AC.isExtension = (classCtor) ->
+        AC.isAnnotated classCtor, ExtendsAnnotation
+    AC.getParent = (classCtor) ->
+        annotation = AC.getAnnotation(classCtor, ExtendsAnnotation)
+        return annotation.baseClass if annotation
+        null
+
 
     # $inject
-    AnnotatedClass.isDependent = (classCtor) -> AnnotatedClass.isAnnotated classCtor, '$inject'
-    AnnotatedClass.getDependencies = (classCtor) -> AnnotatedClass.getAnnotation classCtor, '$inject'
+    AC.isDependent = (classCtor) ->
+        AC.isAnnotated classCtor, InjectAnnotation
+    AC.getDependencies = (classCtor) ->
+        annotation = AC.getAnnotation(classCtor, InjectAnnotation)
+        return annotation.deps if annotation
+        null
+
 
     # $singleton
-    AnnotatedClass.isSingleton = (classCtor) -> AnnotatedClass.isAnnotated classCtor, '$singleton'
+    AC.isSingleton = (classCtor) ->
+        AC.isAnnotated classCtor, SingletonAnnotation
 
     # Static
-    AnnotatedClass.isAnnotated = (ctor, annotation) -> ctor[A_KEY]?[annotation]
-    AnnotatedClass.getAnnotation = (ctor, annotation) -> ctor[A_KEY][annotation]
+    AC.isAnnotated = (ctor, annotation) ->
+        hasAnnotation = ctor[A_KEY]?[annotation.A_KEY]
+        hasAnnotation and hasAnnotation instanceof annotation
+    AC.getAnnotation = (ctor, annotation) ->
+        if AC.isAnnotated.apply null, arguments
+            return ctor[A_KEY][annotation.A_KEY]
+        return null
 
 module.exports = {
     SingletonAnnotation
