@@ -1,29 +1,35 @@
 _ = require 'lodash'
-{AnnotatedClass} = require './annotations'
+{AnnotatedClass, ExtendsAnnotation} = require './annotations'
+A_KEY = AnnotatedClass.A_KEY
+AC = AnnotatedClass
+
+# Private Functions
+_bind = Function.prototype.bind
+
+
+_resolvePrototype = (classCtor, baseClass) ->
+    protoTemp = _.assign {}, classCtor::
+    if AC.isExtension classCtor
+        classCtor:: = baseClass
+        classCtor.__super__ = {}
+        baseExtension = AC.getParent classCtor
+        _.assign classCtor.__super__, baseExtension::
+    _.assign classCtor::, protoTemp
+
+
+_resolve = (classCtor, args, baseClass) ->
+    class Ctor
+        constructor: (args...) -> classCtor.apply @, args
+    Ctor:: = _resolvePrototype classCtor, baseClass
+    args.unshift null
+    _ctor = _bind.apply Ctor, args
+    new _ctor
+
+
 class Injector
     constructor: ->
         @_singletons = []
 
-    # Private Functions
-    _bind = Function.prototype.bind
-    A_KEY = AnnotatedClass.A_KEY
-    AC = AnnotatedClass
-
-    _resolvePrototype = (classCtor, baseClass) ->
-        protoTemp = _.assign {}, classCtor::
-        if AC.isExtension classCtor
-            classCtor:: = baseClass
-            classCtor.__super__ = {}
-            baseExtension = AC.getParent classCtor
-            _.assign classCtor.__super__, baseExtension::
-        _.assign classCtor::, protoTemp
-    _resolve = (classCtor, args, baseClass) ->
-        class Ctor
-            constructor: (args...) -> classCtor.apply @, args
-        Ctor:: = _resolvePrototype classCtor, baseClass
-        args.unshift null
-        _ctor = _bind.apply Ctor, args
-        new _ctor
     _getFromCache: (classCtor) ->
         return null if not AC.isSingleton classCtor
         _.find @_singletons, (i) -> i instanceof classCtor

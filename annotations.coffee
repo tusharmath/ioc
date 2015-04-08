@@ -9,7 +9,6 @@ ExtendsAnnotation.A_KEY = '$extends'
 class InjectAnnotation
     constructor: (@deps) ->
 InjectAnnotation.A_KEY = '$inject'
-
 class AnnotatedClass
     A_KEY = AnnotatedClass.A_KEY = "__annotations__"
     AC = AnnotatedClass
