@@ -1,5 +1,5 @@
 _ = require 'lodash'
-{AnnotatedClass, ExtendsAnnotation} = require './annotations'
+{ResolveAsAnnotation, AnnotatedClass, ExtendsAnnotation} = require './annotations'
 A_KEY = AnnotatedClass.A_KEY
 AC = AnnotatedClass
 
@@ -25,6 +25,12 @@ _resolve = (classCtor, args, baseClass) ->
     _ctor = _bind.apply Ctor, args
     new _ctor
 
+_resolveAs = (classCtor, instance) ->
+    if AC.isAnnotated classCtor, ResolveAsAnnotation
+        annotation = AC.getAnnotation classCtor, ResolveAsAnnotation
+        return annotation.callback instance
+    instance
+
 
 class Injector
     constructor: ->
@@ -35,7 +41,6 @@ class Injector
         _.find @_singletons, (i) -> i instanceof classCtor
     # Static annotation
     Injector.annotate = annotate = (ctor) ->
-        ctor[A_KEY] = {}
         new AnnotatedClass ctor
 
     get: (classCtor) ->
@@ -45,7 +50,8 @@ class Injector
         return this if classCtor is Injector
 
         # Try From cache
-        return instance if instance = @_getFromCache classCtor
+        if instance = @_getFromCache classCtor
+            return _resolveAs classCtor, instance
 
         # Create Dependency Map
         if AC.isDependent classCtor
@@ -64,6 +70,8 @@ class Injector
         # Add to singleton cache
         if AC.isSingleton classCtor
             @_singletons.push instance
-        instance;
+
+        instance = _resolveAs classCtor, instance
+        instance
 
 module.exports = Injector

@@ -26,12 +26,16 @@ function Q (){}
 
 //Access base class methods also
 Q.prototype.print = function (){
-    return "Hello" + Q.__super__.print(); // Hello World
+    return "Hello" + Q.__super__.print(); // Hello World, works best with coffeescript
 }
 
 annotate(Q)
     .inject(B, C) //Dependcies
     .extends(A) // Inheritence
+    .resolveAs(function(q){
+        //q: instance of Q
+        //Really powerful when you want to do something everytime its required
+    })
     .asSingleton() //Default: Transient
 
 

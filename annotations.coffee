@@ -9,6 +9,10 @@ ExtendsAnnotation.A_KEY = '$extends'
 class InjectAnnotation
     constructor: (@deps) ->
 InjectAnnotation.A_KEY = '$inject'
+class ResolveAsAnnotation
+    constructor: (@callback) ->
+ResolveAsAnnotation.A_KEY = '$resolveAs'
+
 class AnnotatedClass
     A_KEY = AnnotatedClass.A_KEY = "__annotations__"
     AC = AnnotatedClass
@@ -26,6 +30,9 @@ class AnnotatedClass
         @
     inject: (args...) ->
         @annotations[InjectAnnotation.A_KEY] = new InjectAnnotation args
+        @
+    resolveAs: (cb) ->
+        @annotations[ResolveAsAnnotation.A_KEY] = new ResolveAsAnnotation cb
         @
 
     # $extends
@@ -65,4 +72,5 @@ module.exports = {
     ExtendsAnnotation
     InjectAnnotation
     AnnotatedClass
+    ResolveAsAnnotation
 }

@@ -47,3 +47,28 @@ describe 'Injector', ->
 
 			expect => @mod.get(Child1)
 			.to.throw "can not instantiate if the class extends a singleton"
+		it 'resolves with the resolver', ->
+			i = 100
+			class A
+				constructor: -> @j = 0
+				create: -> [i++, @j++]
+			@annotate A
+			.resolveAs (a) -> a.create()
+
+			@mod.get A
+			.should.deep.equal [100, 0]
+			@mod.get A
+			.should.deep.equal [101, 0]
+		it 'resolves singletons with the resolver', ->
+			i = 100
+			class A
+				constructor: -> @j = 0
+				create: -> [i++, @j++]
+			@annotate A
+			.asSingleton()
+			.resolveAs (a) -> a.create()
+
+			@mod.get A
+			.should.deep.equal [100, 0]
+			@mod.get A
+			.should.deep.equal [101, 1]
