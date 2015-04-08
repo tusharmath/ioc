@@ -1,5 +1,13 @@
 _ = require 'lodash'
-{ResolveAsAnnotation, AnnotatedClass, ExtendsAnnotation} = require './annotations'
+
+{
+    ResolveAsAnnotation
+    AnnotatedClass
+    ExtendsAnnotation
+} = require './annotations'
+
+
+
 A_KEY = AnnotatedClass.A_KEY
 AC = AnnotatedClass
 
@@ -31,10 +39,10 @@ _resolveAs = (classCtor, instance) ->
         return annotation.callback instance
     instance
 
-
 class Injector
     constructor: ->
         @_singletons = []
+        @_mocks = []
 
     _getFromCache: (classCtor) ->
         return null if not AC.isSingleton classCtor
@@ -43,7 +51,15 @@ class Injector
     Injector.annotate = annotate = (ctor) ->
         new AnnotatedClass ctor
 
+    _getFromMock: (classCtor) ->
+        _.find @_mocks, (i) -> classCtor is i.classCtor
+    providerFor: (classCtor, instance) ->
+        @_mocks.push {classCtor, instance}
+
     get: (classCtor) ->
+        if mock = @_getFromMock classCtor
+            return mock.instance
+
         depMap = [];
 
         # Is self

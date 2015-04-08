@@ -40,6 +40,7 @@ annotate(Q)
 
 
 ioc = new Injector();
+ioc.provideFor(Q, {a: 100}); //Useful for mocking classes
 var q = ioc.get(Q); //Instantiate Q
 ```
-Feel free to create
+Want more? Create a ticket :)
