@@ -1,4 +1,4 @@
-##IOC - Inversion of control
+#NODE-IOC - Inversion of control
 Heavly inspired by [angular/di.js](https://github.com/angular/di.js).
 
 ##Advantages
