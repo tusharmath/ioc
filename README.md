@@ -1,8 +1,14 @@
 ##IOC - Inversion of control
-The most ridiculously simple dependency injection module ever!
+Heavly inspired by [angular/di.js](https://github.com/angular/di.js).
+
+##Advantages
+- A ridiculously simple dependency injection module, perfect for unit-testing.
+- Not making you move away from the default `require` feature of nodejs.
+- Supports inheritence ie. base classes will automatically be injected into the prototype at the time of instantiations.
+- No need for registering modules. Auto detects dependencies using annotations.
 
 ```js
-Injector = require('ioc')
+Injector = require('node-ioc')
 
 //static function for annotation
 annotate = Injector.annotate
@@ -32,3 +38,4 @@ annotate(Q)
 ioc = new Injector();
 var q = ioc.get(Q); //Instantiate Q
 ```
+Feel free to create
