@@ -1,6 +1,6 @@
 {
   "name": "node-ioc",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "a simple ioc container",
   "main": "ioc.ts",
   "scripts": {
@@ -13,5 +13,6 @@
   },
   "dependencies": {
     "lodash": "^3.6.0"
-  }
+  },
+  "keywords": ["ioc", "inversion of control", "dependency injection", "unit testing", "mock"]
 }
