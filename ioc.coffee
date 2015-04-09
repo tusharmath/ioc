@@ -1,10 +1,10 @@
-_ = require 'lodash'
+_ = require './utils.coffee'
 
 {
     ResolveAsAnnotation
     AnnotatedClass
     ExtendsAnnotation
-} = require './annotations'
+} = require './annotations.coffee'
 
 
 

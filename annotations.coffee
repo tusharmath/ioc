@@ -1,4 +1,3 @@
-_ = require 'lodash'
 class SingletonAnnotation
 SingletonAnnotation.A_KEY = '$lifeCycle'
 class TransientAnnotation
