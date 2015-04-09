@@ -55,6 +55,7 @@ class Injector
         _.find @_mocks, (i) -> classCtor is i.classCtor
     providerFor: (classCtor, instance) ->
         @_mocks.push {classCtor, instance}
+        @
 
     get: (classCtor) ->
         if mock = @_getFromMock classCtor

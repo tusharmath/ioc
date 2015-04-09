@@ -72,8 +72,13 @@ describe 'Injector', ->
 			.should.deep.equal [100, 0]
 			@mod.get A
 			.should.deep.equal [101, 1]
+	describe "providerFor()", ->
 		it "provides a mock instance", ->
 			AMock = {}
 			@mod.providerFor @A, AMock
 			@mod.get @A
 			.should.equal AMock
+		it "supports chaining", ->
+			AMock = {}
+			@mod.providerFor @A, AMock
+			.should.equal @mod
