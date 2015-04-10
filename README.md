@@ -44,4 +44,12 @@ ioc = new Injector();
 ioc.provideFor(Q, {a: 100}); //Useful for mocking classes
 var q = ioc.get(Q); //Instantiate Q
 ```
+
+##Development
+Build .js version for browsers
+
+```bash
+browserify ioc.coffee --standalone IOC -t coffeeify  > dist/ioc.js
+```
+
 Want more? Create a ticket :)
