@@ -6,6 +6,7 @@ Heavly inspired by [angular/di.js](https://github.com/angular/di.js).
 - Not making you move away from the default `require` feature of nodejs.
 - Supports inheritence ie. base classes will automatically be injected into the prototype at the time of instantiations.
 - No need for registering modules. Auto detects dependencies using annotations.
+- Browser support available, checkout the `dist` folder.
 
 ```js
 Injector = require('node-ioc')
