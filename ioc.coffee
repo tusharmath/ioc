@@ -46,7 +46,7 @@ class Injector
 
     _getFromCache: (classCtor) ->
         return null if not AC.isSingleton classCtor
-        _.find @_singletons, (i) -> i instanceof classCtor
+        _.find @_singletons, (i) -> i.classCtor is classCtor
     # Static annotation
     Injector.annotate = annotate = (ctor) ->
         new AnnotatedClass ctor
@@ -67,8 +67,7 @@ class Injector
         return this if classCtor is Injector
 
         # Try From cache
-        if instance = @_getFromCache classCtor
-            return _resolveAs classCtor, instance
+        return cachedValue.instance if cachedValue = @_getFromCache classCtor
 
         # Create Dependency Map
         if AC.isDependent classCtor
@@ -83,12 +82,12 @@ class Injector
 
         # Resolve Instance
         instance = _resolve classCtor, depMap, baseClass
+        instance = _resolveAs classCtor, instance
 
         # Add to singleton cache
         if AC.isSingleton classCtor
-            @_singletons.push instance
+            @_singletons.push {instance, classCtor}
 
-        instance = _resolveAs classCtor, instance
         instance
 
 module.exports = Injector

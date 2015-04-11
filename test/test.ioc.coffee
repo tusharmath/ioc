@@ -56,27 +56,20 @@ describe 'Injector', ->
 				constructor: -> @j = 0
 				create: -> [i++, ++@j]
 			@annotate(A).resolveAs (a) -> a.create()
-
-			@mod.get A
-			.should.deep.equal [100, 1]
-			@mod.get A
-			.should.deep.equal [101, 1]
+			@mod.get(A).should.deep.equal [100, 1]
+			@mod.get(A).should.deep.equal [101, 1]
 		it 'resolves singletons with the resolver', ->
 			i = 100
 			class A
 				constructor: -> @j = 0
-				create: -> [i++, ++@j]
-			@annotate(A).asSingleton()
-			.resolveAs (a) -> a.create()
-
-			@mod.get(A).should.deep.equal [100, 1]
-			@mod.get(A).should.deep.equal [101, 2]
+				create: -> [++i, ++@j]
+			@annotate(A).asSingleton().resolveAs (a) -> a.create()
+			@mod.get(A).should.equal @mod.get(A)
 	describe "providerFor()", ->
 		it "provides a mock instance", ->
 			class AMock
 			@mod.providerFor @A, AMock
-			@mod.get @A
-			.should.be.an.instanceOf AMock
+			@mod.get(@A).should.be.an.instanceOf AMock
 		it "supports chaining", ->
 			AMock = {}
 			@mod.providerFor @A, AMock
