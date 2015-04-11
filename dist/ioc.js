@@ -1,48 +1,4 @@
-(function (f) {
-  if (typeof exports === "object" && typeof module !== "undefined") {
-    module.exports = f()
-  } else if (typeof define === "function" && define.amd) {
-    define([], f)
-  } else {
-    var g;
-    if (typeof window !== "undefined") {
-      g = window
-    } else if (typeof global !== "undefined") {
-      g = global
-    } else if (typeof self !== "undefined") {
-      g = self
-    } else {
-      g = this
-    }
-    g.IOC = f()
-  }
-})(function () {
-    var define, module, exports;
-    return (function e(t, n, r) {
-        function s(o, u) {
-          if (!n[o]) {
-            if (!t[o]) {
-              var a = typeof require == "function" && require;
-              if (!u && a) return a(o, !0);
-              if (i) return i(o, !0);
-              var f = new Error("Cannot find module '" + o + "'");
-              throw f.code = "MODULE_NOT_FOUND", f
-            }
-            var l = n[o] = {
-              exports: {}
-            };
-            t[o][0].call(l.exports, function (e) {
-              var n = t[o][1][e];
-              return s(n ? n : e)
-            }, l, l.exports, e, t, n, r)
-          }
-          return n[o].exports
-        }
-        var i = typeof require == "function" && require;
-        for (var o = 0; o < r.length; o++) s(r[o]);
-        return s
-      })({
-          1: [function (require, module, exports) {
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.IOC = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var AnnotatedClass, ExtendsAnnotation, InjectAnnotation, ResolveAsAnnotation, SingletonAnnotation, TransientAnnotation,
   slice = [].slice;
 
@@ -252,7 +208,7 @@ Injector = (function() {
 
   function Injector() {
     this._singletons = [];
-    this._mocks = [];
+    this._providers = [];
   }
 
   Injector.prototype._getFromCache = function(classCtor) {
@@ -260,7 +216,7 @@ Injector = (function() {
       return null;
     }
     return _.find(this._singletons, function(i) {
-      return i instanceof classCtor;
+      return i.classCtor === classCtor;
     });
   };
 
@@ -269,30 +225,33 @@ Injector = (function() {
   };
 
   Injector.prototype._getFromMock = function(classCtor) {
-    return _.find(this._mocks, function(i) {
+    return _.find(this._providers, function(i) {
       return classCtor === i.classCtor;
     });
   };
 
-  Injector.prototype.providerFor = function(classCtor, instance) {
-    this._mocks.push({
+  Injector.prototype.providerFor = function(classCtor, provider) {
+    this._providers.push({
       classCtor: classCtor,
-      instance: instance
+      provider: provider
     });
     return this;
   };
 
   Injector.prototype.get = function(classCtor) {
-    var baseClass, baseExtension, depMap, instance, mock;
+    var baseClass, baseExtension, cachedValue, depMap, instance, mock;
     if (mock = this._getFromMock(classCtor)) {
-      return mock.instance;
+      return this.get(mock.provider);
+    }
+    if (typeof classCtor === 'object') {
+      return classCtor;
     }
     depMap = [];
     if (classCtor === Injector) {
       return this;
     }
-    if (instance = this._getFromCache(classCtor)) {
-      return _resolveAs(classCtor, instance);
+    if (cachedValue = this._getFromCache(classCtor)) {
+      return cachedValue.instance;
     }
     if (AC.isDependent(classCtor)) {
       depMap = _.map(AC.getDependencies(classCtor), (function(_this) {
@@ -309,10 +268,13 @@ Injector = (function() {
       baseClass = this.get(AC.getParent(classCtor));
     }
     instance = _resolve(classCtor, depMap, baseClass);
-    if (AC.isSingleton(classCtor)) {
-      this._singletons.push(instance);
-    }
     instance = _resolveAs(classCtor, instance);
+    if (AC.isSingleton(classCtor)) {
+      this._singletons.push({
+        instance: instance,
+        classCtor: classCtor
+      });
+    }
     return instance;
   };
 
