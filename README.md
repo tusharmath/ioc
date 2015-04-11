@@ -27,7 +27,7 @@ function Q (){}
 
 //Access base class methods also
 Q.prototype.print = function (){
-    return "Hello" + Q.__super__.print(); // Hello World, works best with coffeescript
+    return "Hello" + Q.__super__.print(); // Hello World; works best with coffeescript
 }
 
 annotate(Q)
@@ -35,13 +35,13 @@ annotate(Q)
     .extends(A) // Inheritence
     .resolveAs(function(q){
         //q: instance of Q
-        //Really powerful when you want to do something everytime its required
+        //Really powerful when you want to do something everytime its injected
     })
     .asSingleton() //Default: Transient
 
 
 ioc = new Injector();
-ioc.provideFor(Q, {a: 100}); //Useful for mocking classes
+ioc.provideFor(Q, QMocked); //Useful for mocking classes
 var q = ioc.get(Q); //Instantiate Q
 ```
 

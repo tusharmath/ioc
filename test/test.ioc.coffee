@@ -19,11 +19,13 @@ describe 'Injector', ->
 			x = @mod.get temp2
 			x.a.should.be.an.instanceOf @A
 			x.b.should.be.an.instanceOf @B
+	describe 'get().asSingleton()', ->
 		it 'returns the same instance of a class', ->
 			@annotate(@A).asSingleton()
 			@mod.get(@A).should.equal @mod.get(@A)
 		it 'returns itself when asked for', ->
 			@mod.get(Injector).should.equal @mod
+	describe 'get().extends()', ->
 		it 'supports prototypical inheritance', ->
 			@annotate(@A).extends @B
 			@mod.get(@A).should.be.an.instanceOf @B
@@ -47,6 +49,7 @@ describe 'Injector', ->
 
 			expect => @mod.get(Child1)
 			.to.throw "can not instantiate if the class extends a singleton"
+	describe 'get().initializeBy()', ->
 		it 'resolves with the resolver', ->
 			i = 100
 			class A
