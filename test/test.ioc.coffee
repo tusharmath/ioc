@@ -49,32 +49,28 @@ describe 'Injector', ->
 
 			expect => @mod.get(Child1)
 			.to.throw "can not instantiate if the class extends a singleton"
-	describe 'get().initializeBy()', ->
+	describe 'get().resolveAs()', ->
 		it 'resolves with the resolver', ->
 			i = 100
 			class A
 				constructor: -> @j = 0
-				create: -> [i++, @j++]
-			@annotate A
-			.resolveAs (a) -> a.create()
+				create: -> [i++, ++@j]
+			@annotate(A).resolveAs (a) -> a.create()
 
 			@mod.get A
-			.should.deep.equal [100, 0]
+			.should.deep.equal [100, 1]
 			@mod.get A
-			.should.deep.equal [101, 0]
+			.should.deep.equal [101, 1]
 		it 'resolves singletons with the resolver', ->
 			i = 100
 			class A
 				constructor: -> @j = 0
-				create: -> [i++, @j++]
-			@annotate A
-			.asSingleton()
+				create: -> [i++, ++@j]
+			@annotate(A).asSingleton()
 			.resolveAs (a) -> a.create()
 
-			@mod.get A
-			.should.deep.equal [100, 0]
-			@mod.get A
-			.should.deep.equal [101, 1]
+			@mod.get(A).should.deep.equal [100, 1]
+			@mod.get(A).should.deep.equal [101, 2]
 	describe "providerFor()", ->
 		it "provides a mock instance", ->
 			class AMock
