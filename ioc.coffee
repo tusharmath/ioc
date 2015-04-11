@@ -42,7 +42,7 @@ _resolveAs = (classCtor, instance) ->
 class Injector
     constructor: ->
         @_singletons = []
-        @_mocks = []
+        @_providers = []
 
     _getFromCache: (classCtor) ->
         return null if not AC.isSingleton classCtor
@@ -52,14 +52,14 @@ class Injector
         new AnnotatedClass ctor
 
     _getFromMock: (classCtor) ->
-        _.find @_mocks, (i) -> classCtor is i.classCtor
-    providerFor: (classCtor, instance) ->
-        @_mocks.push {classCtor, instance}
+        _.find @_providers, (i) -> classCtor is i.classCtor
+    providerFor: (classCtor, provider) ->
+        @_providers.push {classCtor, provider}
         @
 
     get: (classCtor) ->
         if mock = @_getFromMock classCtor
-            return mock.instance
+            return @get mock.provider
 
         depMap = [];
 
