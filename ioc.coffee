@@ -61,6 +61,8 @@ class Injector
         if mock = @_getFromMock classCtor
             return @get mock.provider
 
+        return classCtor if typeof classCtor is 'object'
+
         depMap = [];
 
         # Is self
