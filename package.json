@@ -2,7 +2,7 @@
   "name": "node-ioc",
   "version": "1.4.0",
   "description": "a simple ioc container",
-  "main": "ioc.coffee",
+  "main": "dist/ioc",
   "scripts": {
     "test": "mocha"
   },
