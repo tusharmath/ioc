@@ -1,6 +1,6 @@
 {
   "name": "node-ioc",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "a simple ioc container",
   "main": "dist/ioc",
   "scripts": {
