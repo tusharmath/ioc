@@ -72,6 +72,13 @@ describe 'Injector', ->
 				create: -> [++i, ++@j]
 			@annotate(A).asSingleton().resolveAs (a) -> a.create()
 			@mod.get(A).should.equal @mod.get(A)
+
+		it 'resolveAs callback is called with instance of ioc', ->
+			A = ->
+			ioc = null
+			@annotate(A).resolveAs (a, _ioc) -> ioc = _ioc
+			@mod.get A
+			ioc.should.equal @mod
 	describe "providerFor()", ->
 		it "provides a mock instance", ->
 			class AMock

@@ -33,8 +33,9 @@ Q.prototype.print = function (){
 annotate(Q)
     .inject(B, C) //Dependcies
     .extends(A) // Inheritence
-    .resolveAs(function(q){
+    .resolveAs(function(q, ioc){
         //q: instance of Q
+        //ioc: instance of current Injector
         //Really powerful when you want to do something everytime its injected
     })
     .asSingleton() //Default: Transient

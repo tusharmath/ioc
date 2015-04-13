@@ -33,10 +33,10 @@ _resolve = (classCtor, args, baseClass) ->
     _ctor = _bind.apply Ctor, args
     new _ctor
 
-_resolveAs = (classCtor, instance) ->
+_resolveAs = (classCtor, instance, context) ->
     if AC.isAnnotated classCtor, ResolveAsAnnotation
         annotation = AC.getAnnotation classCtor, ResolveAsAnnotation
-        return annotation.callback instance
+        return annotation.callback instance, context
     instance
 
 class Injector
@@ -84,7 +84,7 @@ class Injector
 
         # Resolve Instance
         instance = _resolve classCtor, depMap, baseClass
-        instance = _resolveAs classCtor, instance
+        instance = _resolveAs classCtor, instance, @
 
         # Add to singleton cache
         if AC.isSingleton classCtor

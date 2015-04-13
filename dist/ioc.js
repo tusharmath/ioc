@@ -194,11 +194,11 @@ _resolve = function(classCtor, args, baseClass) {
   return new _ctor;
 };
 
-_resolveAs = function(classCtor, instance) {
+_resolveAs = function(classCtor, instance, context) {
   var annotation;
   if (AC.isAnnotated(classCtor, ResolveAsAnnotation)) {
     annotation = AC.getAnnotation(classCtor, ResolveAsAnnotation);
-    return annotation.callback(instance);
+    return annotation.callback(instance, context);
   }
   return instance;
 };
@@ -268,7 +268,7 @@ Injector = (function() {
       baseClass = this.get(AC.getParent(classCtor));
     }
     instance = _resolve(classCtor, depMap, baseClass);
-    instance = _resolveAs(classCtor, instance);
+    instance = _resolveAs(classCtor, instance, this);
     if (AC.isSingleton(classCtor)) {
       this._singletons.push({
         instance: instance,
