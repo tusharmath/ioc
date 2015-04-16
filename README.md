@@ -42,7 +42,7 @@ annotate(Q)
 
 
 ioc = new Injector();
-ioc.provideFor(Q, QMocked); //Useful for mocking classes
+ioc.providerFor(Q, QMocked); //Useful for mocking classes
 var q = ioc.get(Q); //Instantiate Q
 ```
 
