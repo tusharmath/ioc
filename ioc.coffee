@@ -1,12 +1,6 @@
 _ = require './utils.coffee'
 
-{
-	ResolveAsAnnotation
-	AnnotatedClass
-	ExtendsAnnotation
-} = require './annotations.coffee'
-
-
+AnnotatedClass = require './annotations.coffee'
 
 A_KEY = AnnotatedClass.A_KEY
 AC = AnnotatedClass
@@ -34,9 +28,8 @@ _resolve = (classCtor, args, baseClass) ->
 	new _ctor
 
 _resolveAs = (classCtor, instance, context) ->
-	if AC.isAnnotated classCtor, ResolveAsAnnotation
-		annotation = AC.getAnnotation classCtor, ResolveAsAnnotation
-		return annotation.callback instance, context
+	if resolution = AC.getResolution classCtor
+		return resolution instance, context
 	instance
 
 class Injector

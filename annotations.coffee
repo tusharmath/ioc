@@ -64,6 +64,11 @@ class AnnotatedClass
 		annotation = AC.getAnnotation(classCtor, ProviderAnnotation)
 		return annotation.classCtor if annotation
 		null
+	AC.getResolution = (classCtor) ->
+		annotation = AC.getAnnotation(classCtor, ResolveAsAnnotation)
+		return annotation.callback if annotation
+		null
+
 	AC.isAnnotated = (ctor, annotation) ->
 		hasAnnotation = ctor[A_KEY]?[annotation::A_KEY]
 		hasAnnotation and hasAnnotation instanceof annotation
@@ -72,12 +77,4 @@ class AnnotatedClass
 			return ctor[A_KEY][annotation::A_KEY]
 		return null
 
-module.exports = {
-	SingletonAnnotation
-	TransientAnnotation
-	ExtendsAnnotation
-	InjectAnnotation
-	AnnotatedClass
-	ResolveAsAnnotation
-	ProviderAnnotation
-}
+module.exports = AnnotatedClass
