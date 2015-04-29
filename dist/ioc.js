@@ -1,70 +1,36 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.IOC = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var AnnotatedClass, ExtendsAnnotation, InjectAnnotation, ProviderAnnotation, ResolveAsAnnotation, SingletonAnnotation, TransientAnnotation,
+var ANNOTATIONS, AnnotatedClass, ExtendsAnnotation, InjectAnnotation, ProviderAnnotation, ResolveAsAnnotation, SingletonAnnotation, TransientAnnotation, getAnnotationKey,
   slice = [].slice;
 
-SingletonAnnotation = (function() {
-  function SingletonAnnotation() {}
-
-  SingletonAnnotation.prototype.A_KEY = 'asSingleton';
-
-  return SingletonAnnotation;
-
-})();
-
-TransientAnnotation = (function() {
-  function TransientAnnotation() {}
-
-  TransientAnnotation.prototype.A_KEY = 'asTransient';
-
-  return TransientAnnotation;
-
-})();
-
-ExtendsAnnotation = (function() {
-  function ExtendsAnnotation(baseClass) {
+ANNOTATIONS = {
+  'asSingleton': SingletonAnnotation = function() {},
+  'asTransient': TransientAnnotation = function() {},
+  'extends': ExtendsAnnotation = function(baseClass) {
     this.baseClass = baseClass;
-  }
-
-  ExtendsAnnotation.prototype.A_KEY = 'extends';
-
-  return ExtendsAnnotation;
-
-})();
-
-InjectAnnotation = (function() {
-  function InjectAnnotation() {
+  },
+  'inject': InjectAnnotation = function() {
     var deps;
     deps = 1 <= arguments.length ? slice.call(arguments, 0) : [];
     this.deps = deps;
-  }
-
-  InjectAnnotation.prototype.A_KEY = 'inject';
-
-  return InjectAnnotation;
-
-})();
-
-ResolveAsAnnotation = (function() {
-  function ResolveAsAnnotation(callback) {
+  },
+  'resolveAs': ResolveAsAnnotation = function(callback) {
     this.callback = callback;
-  }
-
-  ResolveAsAnnotation.prototype.A_KEY = 'resolveAs';
-
-  return ResolveAsAnnotation;
-
-})();
-
-ProviderAnnotation = (function() {
-  function ProviderAnnotation(classCtor1) {
+  },
+  'providerFor': ProviderAnnotation = function(classCtor1) {
     this.classCtor = classCtor1;
   }
+};
 
-  ProviderAnnotation.prototype.A_KEY = 'providerFor';
-
-  return ProviderAnnotation;
-
-})();
+getAnnotationKey = function(ann) {
+  var k, v;
+  for (k in ANNOTATIONS) {
+    v = ANNOTATIONS[k];
+    if (v === ann) {
+      return k;
+    }
+  }
+  return null;
+};
 
 AnnotatedClass = (function() {
   var AC, A_KEY;
@@ -76,65 +42,39 @@ AnnotatedClass = (function() {
   function AnnotatedClass(classCtor1) {
     this.classCtor = classCtor1;
     this.classCtor[A_KEY] = this.annotations = {};
+    this._create(ANNOTATIONS);
   }
 
   AnnotatedClass.prototype._applyAnnotation = function(ann, args) {
-    var _ann;
+    var _ann, aKey;
     if (args == null) {
       args = [];
     }
     args.unshift(null);
     _ann = ann.bind.apply(ann, args);
-    this.annotations[ann.prototype.A_KEY] = new _ann;
+    aKey = getAnnotationKey(ann);
+    this.annotations[aKey] = new _ann;
     return this;
   };
 
+  AnnotatedClass.prototype._createAnnotationFunction = function(annotationName, annotationValue) {
+    return (function(_this) {
+      return function() {
+        var args;
+        args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+        return _this._applyAnnotation(ANNOTATIONS[annotationName], args);
+      };
+    })(this);
+  };
+
   AnnotatedClass.prototype._create = function(annotations) {
-    var ann, i, len, results;
+    var annotationName, annotationValue, results;
     results = [];
-    for (i = 0, len = annotations.length; i < len; i++) {
-      ann = annotations[i];
-      results.push(this[ann.prototype.A_KEY] = (function(_this) {
-        return function() {
-          var args;
-          args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-          return _this._applyAnnotation(ann, args);
-        };
-      })(this));
+    for (annotationName in annotations) {
+      annotationValue = annotations[annotationName];
+      results.push(this[annotationName] = this._createAnnotationFunction(annotationName, annotationValue));
     }
     return results;
-  };
-
-  AnnotatedClass.prototype.asSingleton = function() {
-    return this._applyAnnotation(SingletonAnnotation);
-  };
-
-  AnnotatedClass.prototype.asTransient = function() {
-    return this._applyAnnotation(TransientAnnotation);
-  };
-
-  AnnotatedClass.prototype["extends"] = function() {
-    var args;
-    args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-    return this._applyAnnotation(ExtendsAnnotation, args);
-  };
-
-  AnnotatedClass.prototype.inject = function() {
-    var args;
-    args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-    return this._applyAnnotation(InjectAnnotation, args);
-  };
-
-  AnnotatedClass.prototype.resolveAs = function() {
-    var args;
-    args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-    return this._applyAnnotation(ResolveAsAnnotation, args);
-  };
-
-  AnnotatedClass.prototype.providerFor = function() {
-    var args;
-    args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-    return this._applyAnnotation(ProviderAnnotation, args);
   };
 
   AC.isExtension = function(classCtor) {
@@ -176,15 +116,24 @@ AnnotatedClass = (function() {
     return null;
   };
 
+  AC.getResolution = function(classCtor) {
+    var annotation;
+    annotation = AC.getAnnotation(classCtor, ResolveAsAnnotation);
+    if (annotation) {
+      return annotation.callback;
+    }
+    return null;
+  };
+
   AC.isAnnotated = function(ctor, annotation) {
     var hasAnnotation, ref;
-    hasAnnotation = (ref = ctor[A_KEY]) != null ? ref[annotation.prototype.A_KEY] : void 0;
+    hasAnnotation = (ref = ctor[A_KEY]) != null ? ref[getAnnotationKey(annotation)] : void 0;
     return hasAnnotation && hasAnnotation instanceof annotation;
   };
 
   AC.getAnnotation = function(ctor, annotation) {
     if (AC.isAnnotated.apply(null, arguments)) {
-      return ctor[A_KEY][annotation.prototype.A_KEY];
+      return ctor[A_KEY][getAnnotationKey(annotation)];
     }
     return null;
   };
@@ -193,25 +142,17 @@ AnnotatedClass = (function() {
 
 })();
 
-module.exports = {
-  SingletonAnnotation: SingletonAnnotation,
-  TransientAnnotation: TransientAnnotation,
-  ExtendsAnnotation: ExtendsAnnotation,
-  InjectAnnotation: InjectAnnotation,
-  AnnotatedClass: AnnotatedClass,
-  ResolveAsAnnotation: ResolveAsAnnotation,
-  ProviderAnnotation: ProviderAnnotation
-};
+module.exports = AnnotatedClass;
 
 
 
 },{}],2:[function(require,module,exports){
-var AC, A_KEY, AnnotatedClass, ExtendsAnnotation, Injector, ResolveAsAnnotation, _, _bind, _resolve, _resolveAs, _resolvePrototype, ref,
+var AC, A_KEY, AnnotatedClass, Injector, _, _bind, _resolve, _resolveAs, _resolvePrototype,
   slice = [].slice;
 
 _ = require('./utils.coffee');
 
-ref = require('./annotations.coffee'), ResolveAsAnnotation = ref.ResolveAsAnnotation, AnnotatedClass = ref.AnnotatedClass, ExtendsAnnotation = ref.ExtendsAnnotation;
+AnnotatedClass = require('./annotations.coffee');
 
 A_KEY = AnnotatedClass.A_KEY;
 
@@ -250,10 +191,9 @@ _resolve = function(classCtor, args, baseClass) {
 };
 
 _resolveAs = function(classCtor, instance, context) {
-  var annotation;
-  if (AC.isAnnotated(classCtor, ResolveAsAnnotation)) {
-    annotation = AC.getAnnotation(classCtor, ResolveAsAnnotation);
-    return annotation.callback(instance, context);
+  var resolution;
+  if (resolution = AC.getResolution(classCtor)) {
+    return resolution(instance, context);
   }
   return instance;
 };
