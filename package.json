@@ -17,5 +17,6 @@
     "dependency injection",
     "unit testing",
     "mock"
-  ]
+	],
+	"repository": "git@github.com:tusharmath/ioc.git"
 }
