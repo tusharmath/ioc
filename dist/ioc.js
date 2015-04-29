@@ -241,7 +241,7 @@ Injector = (function() {
   Injector.prototype.get = function(classCtor) {
     var baseClass, baseExtension, cachedValue, depMap, instance, mock;
     if (mock = this._getFromMock(classCtor)) {
-      return this.get(mock.provider);
+      return _resolveAs(classCtor, this.get(mock.provider), this);
     }
     if (typeof classCtor === 'object') {
       return classCtor;
