@@ -78,7 +78,7 @@ describe 'Injector', ->
 			@annotate(A).resolveAs (a, _ioc) -> ioc = _ioc
 			@mod.get A
 			ioc.should.equal @mod
-	describe "providerFor()", ->
+	describe "get().providerFor()", ->
 		beforeEach ->
 			@AMock = -> this.jupiter = 200
 			@A = -> this.jupiter = 100

@@ -1,51 +1,40 @@
-class SingletonAnnotation
-	A_KEY: 'asSingleton'
+ANNOTATIONS = {
+	'asSingleton': SingletonAnnotation =  ->
+	'asTransient': TransientAnnotation = ->
+	'extends': ExtendsAnnotation = (@baseClass) ->
+	'inject': InjectAnnotation = (@deps...) ->
+	'resolveAs': ResolveAsAnnotation = (@callback) ->
+	'providerFor': ProviderAnnotation = (@classCtor) ->
+}
 
-class TransientAnnotation
-	A_KEY: 'asTransient'
 
-class ExtendsAnnotation
-	constructor: (@baseClass) ->
-	A_KEY: 'extends'
-
-class InjectAnnotation
-	constructor: (@deps...) ->
-	A_KEY: 'inject'
-
-class ResolveAsAnnotation
-	constructor: (@callback) ->
-	A_KEY: 'resolveAs'
-
-class ProviderAnnotation
-	constructor: (@classCtor) ->
-	A_KEY: 'providerFor'
+getAnnotationKey = (ann) ->
+	for k, v of ANNOTATIONS
+		if v is ann
+			return k
+	return null
 
 class AnnotatedClass
 	A_KEY = AnnotatedClass.A_KEY = "__annotations__"
 	AC = AnnotatedClass
 	constructor: (@classCtor) ->
 		@classCtor[A_KEY] = @annotations = {}
-
+		@_create ANNOTATIONS
 	# Chained
 	_applyAnnotation: (ann, args = []) ->
 		args.unshift null
 		_ann = ann.bind.apply ann, args
-		@annotations[ann::A_KEY] = new _ann
+		aKey = getAnnotationKey ann
+		@annotations[aKey] = new _ann
 		@
-	# TODO:Unused but usable
+	_createAnnotationFunction: (annotationName, annotationValue) ->
+		(args...) => @_applyAnnotation ANNOTATIONS[annotationName], args
 	_create: (annotations) ->
-		for ann in annotations
-			@[ann::A_KEY] = (args...) =>
-				@_applyAnnotation ann, args
-	# TODO: Refactor
-	asSingleton: -> @_applyAnnotation SingletonAnnotation
-	asTransient: -> @_applyAnnotation TransientAnnotation
-	extends: (args...) -> @_applyAnnotation ExtendsAnnotation, args
-	inject: (args...) -> @_applyAnnotation InjectAnnotation, args
-	resolveAs: (args...) -> @_applyAnnotation ResolveAsAnnotation, args
-	providerFor: (args...) -> @_applyAnnotation ProviderAnnotation, args
+		for annotationName, annotationValue of annotations
+			@[annotationName] = @_createAnnotationFunction annotationName, annotationValue
 
-	# $extends
+
+	# Helper Methods
 	AC.isExtension = (classCtor) ->
 		AC.isAnnotated classCtor, ExtendsAnnotation
 	AC.getParent = (classCtor) ->
@@ -68,13 +57,12 @@ class AnnotatedClass
 		annotation = AC.getAnnotation(classCtor, ResolveAsAnnotation)
 		return annotation.callback if annotation
 		null
-
 	AC.isAnnotated = (ctor, annotation) ->
-		hasAnnotation = ctor[A_KEY]?[annotation::A_KEY]
+		hasAnnotation = ctor[A_KEY]?[getAnnotationKey(annotation)]
 		hasAnnotation and hasAnnotation instanceof annotation
 	AC.getAnnotation = (ctor, annotation) ->
 		if AC.isAnnotated.apply null, arguments
-			return ctor[A_KEY][annotation::A_KEY]
+			return ctor[A_KEY][getAnnotationKey(annotation)]
 		return null
 
 module.exports = AnnotatedClass

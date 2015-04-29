@@ -8,7 +8,6 @@ AC = AnnotatedClass
 # Private Functions
 _bind = Function.prototype.bind
 
-
 _resolvePrototype = (classCtor, baseClass) ->
 	protoTemp = _.assign {}, classCtor::
 	if AC.isExtension classCtor
@@ -17,7 +16,6 @@ _resolvePrototype = (classCtor, baseClass) ->
 		baseExtension = AC.getParent classCtor
 		_.assign classCtor.__super__, baseExtension::
 	_.assign classCtor::, protoTemp
-
 
 _resolve = (classCtor, args, baseClass) ->
 	class Ctor
@@ -35,7 +33,6 @@ _resolveAs = (classCtor, instance, context) ->
 class Injector
 	constructor: (@_providers...) ->
 		@_singletons = []
-
 
 	_getFromCache: (classCtor) ->
 		return null if not AC.isSingleton classCtor
