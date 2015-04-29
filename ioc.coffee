@@ -1,9 +1,9 @@
 _ = require './utils.coffee'
 
 {
-    ResolveAsAnnotation
-    AnnotatedClass
-    ExtendsAnnotation
+	ResolveAsAnnotation
+	AnnotatedClass
+	ExtendsAnnotation
 } = require './annotations.coffee'
 
 
@@ -16,80 +16,77 @@ _bind = Function.prototype.bind
 
 
 _resolvePrototype = (classCtor, baseClass) ->
-    protoTemp = _.assign {}, classCtor::
-    if AC.isExtension classCtor
-        classCtor:: = baseClass
-        classCtor.__super__ = {}
-        baseExtension = AC.getParent classCtor
-        _.assign classCtor.__super__, baseExtension::
-    _.assign classCtor::, protoTemp
+	protoTemp = _.assign {}, classCtor::
+	if AC.isExtension classCtor
+		classCtor:: = baseClass
+		classCtor.__super__ = {}
+		baseExtension = AC.getParent classCtor
+		_.assign classCtor.__super__, baseExtension::
+	_.assign classCtor::, protoTemp
 
 
 _resolve = (classCtor, args, baseClass) ->
-    class Ctor
-        constructor: (args...) -> classCtor.apply @, args
-    Ctor:: = _resolvePrototype classCtor, baseClass
-    args.unshift null
-    _ctor = _bind.apply Ctor, args
-    new _ctor
+	class Ctor
+		constructor: (args...) -> classCtor.apply @, args
+	Ctor:: = _resolvePrototype classCtor, baseClass
+	args.unshift null
+	_ctor = _bind.apply Ctor, args
+	new _ctor
 
 _resolveAs = (classCtor, instance, context) ->
-    if AC.isAnnotated classCtor, ResolveAsAnnotation
-        annotation = AC.getAnnotation classCtor, ResolveAsAnnotation
-        return annotation.callback instance, context
-    instance
+	if AC.isAnnotated classCtor, ResolveAsAnnotation
+		annotation = AC.getAnnotation classCtor, ResolveAsAnnotation
+		return annotation.callback instance, context
+	instance
 
 class Injector
-    constructor: ->
-        @_singletons = []
-        @_providers = []
+	constructor: (@_providers...) ->
+		@_singletons = []
 
-    _getFromCache: (classCtor) ->
-        return null if not AC.isSingleton classCtor
-        _.find @_singletons, (i) -> i.classCtor is classCtor
-    # Static annotation
-    Injector.annotate = annotate = (ctor) ->
-        new AnnotatedClass ctor
 
-    _getFromMock: (classCtor) ->
-        _.find @_providers, (i) -> classCtor is i.classCtor
-    providerFor: (classCtor, provider) ->
-        @_providers.push {classCtor, provider}
-        @
+	_getFromCache: (classCtor) ->
+		return null if not AC.isSingleton classCtor
+		_.find @_singletons, (i) -> i.classCtor is classCtor
+	# Static annotation
+	Injector.annotate = annotate = (ctor) ->
+		new AnnotatedClass ctor
 
-    get: (classCtor) ->
-        if mock = @_getFromMock classCtor
-            return _resolveAs classCtor, @get(mock.provider), @
+	_getFromMock: (classCtor) ->
+		_.find @_providers, (i) -> classCtor is AC.getProviderFor i
 
-        return classCtor if typeof classCtor is 'object'
+	get: (classCtor) ->
+		throw Error 'Constructor expected' if typeof classCtor is 'object'
 
-        depMap = [];
+		if mock = @_getFromMock classCtor
+			return _resolveAs classCtor, @get(mock), @
 
-        # Is self
-        return this if classCtor is Injector
+		depMap = [];
 
-        # Try From cache
-        return cachedValue.instance if cachedValue = @_getFromCache classCtor
+		# Is self
+		return this if classCtor is Injector
 
-        # Create Dependency Map
-        if AC.isDependent classCtor
-            depMap = _.map AC.getDependencies(classCtor), (i) => @get i
+		# Try From cache
+		return cachedValue.instance if cachedValue = @_getFromCache classCtor
 
-        # Get Base class instance
-        if AC.isExtension classCtor
-            baseExtension = AC.getParent classCtor
-            if AC.isSingleton baseExtension
-                throw new Error "can not instantiate if the class extends a singleton"
-            baseClass = @get AC.getParent classCtor
+		# Create Dependency Map
+		if AC.isDependent classCtor
+			depMap = _.map AC.getDependencies(classCtor), (i) => @get i
 
-        # Resolve Instance
-        instance = _resolve classCtor, depMap, baseClass
-        instance = _resolveAs classCtor, instance, @
+		# Get Base class instance
+		if AC.isExtension classCtor
+			baseExtension = AC.getParent classCtor
+			if AC.isSingleton baseExtension
+				throw new Error "can not instantiate if the class extends a singleton"
+			baseClass = @get AC.getParent classCtor
 
-        # Add to singleton cache
-        if AC.isSingleton classCtor
-            @_singletons.push {instance, classCtor}
+		# Resolve Instance
+		instance = _resolve classCtor, depMap, baseClass
+		instance = _resolveAs classCtor, instance, @
 
-        instance
+		# Add to singleton cache
+		if AC.isSingleton classCtor
+			@_singletons.push {instance, classCtor}
+
+		instance
 
 module.exports = Injector

@@ -19,12 +19,11 @@ describe 'Injector', ->
 			x = @mod.get temp2
 			x.a.should.be.an.instanceOf @A
 			x.b.should.be.an.instanceOf @B
-		it 'can depend on objects', ->
-			tempObj = a: 120, b: 330
-			class @A
-				constructor: (@obj) ->
-			@annotate(@A).inject tempObj
-			@mod.get(@A).obj.should.equal tempObj
+		it 'can not depend on objects', ->
+			class A
+			@annotate(A).inject {}
+			expect => @mod.get(A)
+			.to.throw 'Constructor expected'
 
 	describe 'get().asSingleton()', ->
 		it 'returns the same instance of a class', ->
@@ -80,21 +79,16 @@ describe 'Injector', ->
 			@mod.get A
 			ioc.should.equal @mod
 	describe "providerFor()", ->
+		beforeEach ->
+			@AMock = -> this.jupiter = 200
+			@A = -> this.jupiter = 100
+			@annotate(@AMock).providerFor(@A)
+			@mod = new Injector(@AMock)
+
 		it "provides a mock instance", ->
-			class AMock
-			@mod.providerFor @A, AMock
-			@mod.get(@A).should.be.an.instanceOf AMock
-		it "provides a mock obj", ->
-			AMock = {}
-			@mod.providerFor @A, AMock
-			@mod.get(@A).should.equal AMock
-		it "supports chaining", ->
-			AMock = {}
-			@mod.providerFor @A, AMock
-			.should.equal @mod
+
+			(@mod.get(@A) instanceof @AMock).should.be.ok
+
 		it "supports resolveAs", ->
-			AMock = jupiter : 200
-			A = -> this.jupiter = 100
-			@annotate(A).resolveAs (i) -> i.jupiter
-			@mod.providerFor A, AMock
-			@mod.get(A).should.equal 200
+			@annotate(@A).resolveAs (i) -> i.jupiter
+			@mod.get(@A).should.equal 200

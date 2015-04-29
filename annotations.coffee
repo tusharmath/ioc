@@ -11,6 +11,9 @@ InjectAnnotation.A_KEY = '$inject'
 class ResolveAsAnnotation
     constructor: (@callback) ->
 ResolveAsAnnotation.A_KEY = '$resolveAs'
+class ProviderAnnotation
+    constructor: (@classCtor) ->
+ProviderAnnotation.A_KEY = '$providerFor'
 
 class AnnotatedClass
     A_KEY = AnnotatedClass.A_KEY = "__annotations__"
@@ -33,7 +36,9 @@ class AnnotatedClass
     resolveAs: (cb) ->
         @annotations[ResolveAsAnnotation.A_KEY] = new ResolveAsAnnotation cb
         @
-
+    providerFor: (providerFor) ->
+        @annotations[ProviderAnnotation.A_KEY] = new ProviderAnnotation providerFor
+        @
     # $extends
     AC.isExtension = (classCtor) ->
         AC.isAnnotated classCtor, ExtendsAnnotation
@@ -56,6 +61,11 @@ class AnnotatedClass
     AC.isSingleton = (classCtor) ->
         AC.isAnnotated classCtor, SingletonAnnotation
 
+    AC.getProviderFor = (classCtor) ->
+        annotation = AC.getAnnotation(classCtor, ProviderAnnotation)
+        return annotation.classCtor if annotation
+        null
+
     # Static
     AC.isAnnotated = (ctor, annotation) ->
         hasAnnotation = ctor[A_KEY]?[annotation.A_KEY]
@@ -72,4 +82,5 @@ module.exports = {
     InjectAnnotation
     AnnotatedClass
     ResolveAsAnnotation
+    ProviderAnnotation
 }
