@@ -1,6 +1,6 @@
 {
   "name": "node-ioc",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "a simple ioc container",
   "main": "dist/ioc",
   "scripts": {
@@ -17,6 +17,6 @@
     "dependency injection",
     "unit testing",
     "mock"
-	],
-	"repository": "git@github.com:tusharmath/ioc.git"
+  ],
+  "repository": "git@github.com:tusharmath/ioc.git"
 }
