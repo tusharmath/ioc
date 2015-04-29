@@ -1,57 +1,70 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.IOC = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var AnnotatedClass, ExtendsAnnotation, InjectAnnotation, ResolveAsAnnotation, SingletonAnnotation, TransientAnnotation,
+var AnnotatedClass, ExtendsAnnotation, InjectAnnotation, ProviderAnnotation, ResolveAsAnnotation, SingletonAnnotation, TransientAnnotation,
   slice = [].slice;
 
 SingletonAnnotation = (function() {
   function SingletonAnnotation() {}
 
+  SingletonAnnotation.prototype.A_KEY = 'asSingleton';
+
   return SingletonAnnotation;
 
 })();
 
-SingletonAnnotation.A_KEY = '$lifeCycle';
-
 TransientAnnotation = (function() {
   function TransientAnnotation() {}
+
+  TransientAnnotation.prototype.A_KEY = 'asTransient';
 
   return TransientAnnotation;
 
 })();
 
-TransientAnnotation.A_KEY = '$lifeCycle';
-
 ExtendsAnnotation = (function() {
-  function ExtendsAnnotation(baseClass1) {
-    this.baseClass = baseClass1;
+  function ExtendsAnnotation(baseClass) {
+    this.baseClass = baseClass;
   }
+
+  ExtendsAnnotation.prototype.A_KEY = 'extends';
 
   return ExtendsAnnotation;
 
 })();
 
-ExtendsAnnotation.A_KEY = '$extends';
-
 InjectAnnotation = (function() {
-  function InjectAnnotation(deps) {
+  function InjectAnnotation() {
+    var deps;
+    deps = 1 <= arguments.length ? slice.call(arguments, 0) : [];
     this.deps = deps;
   }
+
+  InjectAnnotation.prototype.A_KEY = 'inject';
 
   return InjectAnnotation;
 
 })();
-
-InjectAnnotation.A_KEY = '$inject';
 
 ResolveAsAnnotation = (function() {
   function ResolveAsAnnotation(callback) {
     this.callback = callback;
   }
 
+  ResolveAsAnnotation.prototype.A_KEY = 'resolveAs';
+
   return ResolveAsAnnotation;
 
 })();
 
-ResolveAsAnnotation.A_KEY = '$resolveAs';
+ProviderAnnotation = (function() {
+  function ProviderAnnotation(classCtor1) {
+    this.classCtor = classCtor1;
+  }
+
+  ProviderAnnotation.prototype.A_KEY = 'providerFor';
+
+  return ProviderAnnotation;
+
+})();
 
 AnnotatedClass = (function() {
   var AC, A_KEY;
@@ -65,31 +78,63 @@ AnnotatedClass = (function() {
     this.classCtor[A_KEY] = this.annotations = {};
   }
 
-  AnnotatedClass.prototype.asSingleton = function() {
-    this.annotations[SingletonAnnotation.A_KEY] = new SingletonAnnotation;
+  AnnotatedClass.prototype._applyAnnotation = function(ann, args) {
+    var _ann;
+    if (args == null) {
+      args = [];
+    }
+    args.unshift(null);
+    _ann = ann.bind.apply(ann, args);
+    this.annotations[ann.prototype.A_KEY] = new _ann;
     return this;
+  };
+
+  AnnotatedClass.prototype._create = function(annotations) {
+    var ann, i, len, results;
+    results = [];
+    for (i = 0, len = annotations.length; i < len; i++) {
+      ann = annotations[i];
+      results.push(this[ann.prototype.A_KEY] = (function(_this) {
+        return function() {
+          var args;
+          args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+          return _this._applyAnnotation(ann, args);
+        };
+      })(this));
+    }
+    return results;
+  };
+
+  AnnotatedClass.prototype.asSingleton = function() {
+    return this._applyAnnotation(SingletonAnnotation);
   };
 
   AnnotatedClass.prototype.asTransient = function() {
-    this.annotations[TransientAnnotation.A_KEY] = new TransientAnnotation;
-    return this;
+    return this._applyAnnotation(TransientAnnotation);
   };
 
-  AnnotatedClass.prototype["extends"] = function(baseClass) {
-    this.annotations[ExtendsAnnotation.A_KEY] = new ExtendsAnnotation(baseClass);
-    return this;
+  AnnotatedClass.prototype["extends"] = function() {
+    var args;
+    args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+    return this._applyAnnotation(ExtendsAnnotation, args);
   };
 
   AnnotatedClass.prototype.inject = function() {
     var args;
     args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-    this.annotations[InjectAnnotation.A_KEY] = new InjectAnnotation(args);
-    return this;
+    return this._applyAnnotation(InjectAnnotation, args);
   };
 
-  AnnotatedClass.prototype.resolveAs = function(cb) {
-    this.annotations[ResolveAsAnnotation.A_KEY] = new ResolveAsAnnotation(cb);
-    return this;
+  AnnotatedClass.prototype.resolveAs = function() {
+    var args;
+    args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+    return this._applyAnnotation(ResolveAsAnnotation, args);
+  };
+
+  AnnotatedClass.prototype.providerFor = function() {
+    var args;
+    args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+    return this._applyAnnotation(ProviderAnnotation, args);
   };
 
   AC.isExtension = function(classCtor) {
@@ -122,15 +167,24 @@ AnnotatedClass = (function() {
     return AC.isAnnotated(classCtor, SingletonAnnotation);
   };
 
+  AC.getProviderFor = function(classCtor) {
+    var annotation;
+    annotation = AC.getAnnotation(classCtor, ProviderAnnotation);
+    if (annotation) {
+      return annotation.classCtor;
+    }
+    return null;
+  };
+
   AC.isAnnotated = function(ctor, annotation) {
     var hasAnnotation, ref;
-    hasAnnotation = (ref = ctor[A_KEY]) != null ? ref[annotation.A_KEY] : void 0;
+    hasAnnotation = (ref = ctor[A_KEY]) != null ? ref[annotation.prototype.A_KEY] : void 0;
     return hasAnnotation && hasAnnotation instanceof annotation;
   };
 
   AC.getAnnotation = function(ctor, annotation) {
     if (AC.isAnnotated.apply(null, arguments)) {
-      return ctor[A_KEY][annotation.A_KEY];
+      return ctor[A_KEY][annotation.prototype.A_KEY];
     }
     return null;
   };
@@ -145,7 +199,8 @@ module.exports = {
   ExtendsAnnotation: ExtendsAnnotation,
   InjectAnnotation: InjectAnnotation,
   AnnotatedClass: AnnotatedClass,
-  ResolveAsAnnotation: ResolveAsAnnotation
+  ResolveAsAnnotation: ResolveAsAnnotation,
+  ProviderAnnotation: ProviderAnnotation
 };
 
 
@@ -207,8 +262,10 @@ Injector = (function() {
   var annotate;
 
   function Injector() {
+    var _providers;
+    _providers = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+    this._providers = _providers;
     this._singletons = [];
-    this._providers = [];
   }
 
   Injector.prototype._getFromCache = function(classCtor) {
@@ -226,25 +283,17 @@ Injector = (function() {
 
   Injector.prototype._getFromMock = function(classCtor) {
     return _.find(this._providers, function(i) {
-      return classCtor === i.classCtor;
+      return classCtor === AC.getProviderFor(i);
     });
-  };
-
-  Injector.prototype.providerFor = function(classCtor, provider) {
-    this._providers.push({
-      classCtor: classCtor,
-      provider: provider
-    });
-    return this;
   };
 
   Injector.prototype.get = function(classCtor) {
     var baseClass, baseExtension, cachedValue, depMap, instance, mock;
-    if (mock = this._getFromMock(classCtor)) {
-      return _resolveAs(classCtor, this.get(mock.provider), this);
-    }
     if (typeof classCtor === 'object') {
-      return classCtor;
+      throw Error('Constructor expected');
+    }
+    if (mock = this._getFromMock(classCtor)) {
+      return _resolveAs(classCtor, this.get(mock), this);
     }
     depMap = [];
     if (classCtor === Injector) {

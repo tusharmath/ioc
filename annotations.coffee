@@ -1,86 +1,83 @@
 class SingletonAnnotation
-SingletonAnnotation.A_KEY = '$lifeCycle'
+	A_KEY: 'asSingleton'
+
 class TransientAnnotation
-TransientAnnotation.A_KEY = '$lifeCycle'
+	A_KEY: 'asTransient'
+
 class ExtendsAnnotation
-    constructor: (@baseClass) ->
-ExtendsAnnotation.A_KEY = '$extends'
+	constructor: (@baseClass) ->
+	A_KEY: 'extends'
+
 class InjectAnnotation
-    constructor: (@deps) ->
-InjectAnnotation.A_KEY = '$inject'
+	constructor: (@deps...) ->
+	A_KEY: 'inject'
+
 class ResolveAsAnnotation
-    constructor: (@callback) ->
-ResolveAsAnnotation.A_KEY = '$resolveAs'
+	constructor: (@callback) ->
+	A_KEY: 'resolveAs'
+
 class ProviderAnnotation
-    constructor: (@classCtor) ->
-ProviderAnnotation.A_KEY = '$providerFor'
+	constructor: (@classCtor) ->
+	A_KEY: 'providerFor'
 
 class AnnotatedClass
-    A_KEY = AnnotatedClass.A_KEY = "__annotations__"
-    AC = AnnotatedClass
-    constructor: (@classCtor) ->
-        @classCtor[A_KEY] = @annotations = {}
-    # Chained
-    asSingleton: ->
-        @annotations[SingletonAnnotation.A_KEY] = new SingletonAnnotation
-        @
-    asTransient: ->
-        @annotations[TransientAnnotation.A_KEY] = new TransientAnnotation
-        @
-    extends: (baseClass) ->
-        @annotations[ExtendsAnnotation.A_KEY] = new ExtendsAnnotation baseClass
-        @
-    inject: (args...) ->
-        @annotations[InjectAnnotation.A_KEY] = new InjectAnnotation args
-        @
-    resolveAs: (cb) ->
-        @annotations[ResolveAsAnnotation.A_KEY] = new ResolveAsAnnotation cb
-        @
-    providerFor: (providerFor) ->
-        @annotations[ProviderAnnotation.A_KEY] = new ProviderAnnotation providerFor
-        @
-    # $extends
-    AC.isExtension = (classCtor) ->
-        AC.isAnnotated classCtor, ExtendsAnnotation
-    AC.getParent = (classCtor) ->
-        annotation = AC.getAnnotation(classCtor, ExtendsAnnotation)
-        return annotation.baseClass if annotation
-        null
+	A_KEY = AnnotatedClass.A_KEY = "__annotations__"
+	AC = AnnotatedClass
+	constructor: (@classCtor) ->
+		@classCtor[A_KEY] = @annotations = {}
 
+	# Chained
+	_applyAnnotation: (ann, args = []) ->
+		args.unshift null
+		_ann = ann.bind.apply ann, args
+		@annotations[ann::A_KEY] = new _ann
+		@
+	# TODO:Unused but usable
+	_create: (annotations) ->
+		for ann in annotations
+			@[ann::A_KEY] = (args...) =>
+				@_applyAnnotation ann, args
+	# TODO: Refactor
+	asSingleton: -> @_applyAnnotation SingletonAnnotation
+	asTransient: -> @_applyAnnotation TransientAnnotation
+	extends: (args...) -> @_applyAnnotation ExtendsAnnotation, args
+	inject: (args...) -> @_applyAnnotation InjectAnnotation, args
+	resolveAs: (args...) -> @_applyAnnotation ResolveAsAnnotation, args
+	providerFor: (args...) -> @_applyAnnotation ProviderAnnotation, args
 
-    # $inject
-    AC.isDependent = (classCtor) ->
-        AC.isAnnotated classCtor, InjectAnnotation
-    AC.getDependencies = (classCtor) ->
-        annotation = AC.getAnnotation(classCtor, InjectAnnotation)
-        return annotation.deps if annotation
-        null
-
-
-    # $singleton
-    AC.isSingleton = (classCtor) ->
-        AC.isAnnotated classCtor, SingletonAnnotation
-
-    AC.getProviderFor = (classCtor) ->
-        annotation = AC.getAnnotation(classCtor, ProviderAnnotation)
-        return annotation.classCtor if annotation
-        null
-
-    # Static
-    AC.isAnnotated = (ctor, annotation) ->
-        hasAnnotation = ctor[A_KEY]?[annotation.A_KEY]
-        hasAnnotation and hasAnnotation instanceof annotation
-    AC.getAnnotation = (ctor, annotation) ->
-        if AC.isAnnotated.apply null, arguments
-            return ctor[A_KEY][annotation.A_KEY]
-        return null
+	# $extends
+	AC.isExtension = (classCtor) ->
+		AC.isAnnotated classCtor, ExtendsAnnotation
+	AC.getParent = (classCtor) ->
+		annotation = AC.getAnnotation(classCtor, ExtendsAnnotation)
+		return annotation.baseClass if annotation
+		null
+	AC.isDependent = (classCtor) ->
+		AC.isAnnotated classCtor, InjectAnnotation
+	AC.getDependencies = (classCtor) ->
+		annotation = AC.getAnnotation(classCtor, InjectAnnotation)
+		return annotation.deps if annotation
+		null
+	AC.isSingleton = (classCtor) ->
+		AC.isAnnotated classCtor, SingletonAnnotation
+	AC.getProviderFor = (classCtor) ->
+		annotation = AC.getAnnotation(classCtor, ProviderAnnotation)
+		return annotation.classCtor if annotation
+		null
+	AC.isAnnotated = (ctor, annotation) ->
+		hasAnnotation = ctor[A_KEY]?[annotation::A_KEY]
+		hasAnnotation and hasAnnotation instanceof annotation
+	AC.getAnnotation = (ctor, annotation) ->
+		if AC.isAnnotated.apply null, arguments
+			return ctor[A_KEY][annotation::A_KEY]
+		return null
 
 module.exports = {
-    SingletonAnnotation
-    TransientAnnotation
-    ExtendsAnnotation
-    InjectAnnotation
-    AnnotatedClass
-    ResolveAsAnnotation
-    ProviderAnnotation
+	SingletonAnnotation
+	TransientAnnotation
+	ExtendsAnnotation
+	InjectAnnotation
+	AnnotatedClass
+	ResolveAsAnnotation
+	ProviderAnnotation
 }
