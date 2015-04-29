@@ -92,3 +92,9 @@ describe 'Injector', ->
 			AMock = {}
 			@mod.providerFor @A, AMock
 			.should.equal @mod
+		it "supports resolveAs", ->
+			AMock = jupiter : 200
+			A = -> this.jupiter = 100
+			@annotate(A).resolveAs (i) -> i.jupiter
+			@mod.providerFor A, AMock
+			@mod.get(A).should.equal 200

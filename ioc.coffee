@@ -59,7 +59,7 @@ class Injector
 
     get: (classCtor) ->
         if mock = @_getFromMock classCtor
-            return @get mock.provider
+            return _resolveAs classCtor, @get(mock.provider), @
 
         return classCtor if typeof classCtor is 'object'
 
