@@ -4,7 +4,7 @@ should = require('chai').should();
 
 expect = require('chai').expect;
 
-Injector = require('../ioc');
+Injector = require('../lib/ioc');
 
 describe('Injector', function () {
     beforeEach(function () {
