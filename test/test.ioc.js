@@ -20,7 +20,8 @@ describe('Injector', function () {
     });
     describe('get()', function () {
         it('returns an instance of a class', function () {
-            return this.mod.get(this.A).should.be.an.instanceOf(this.A);
+            class A {}
+            return this.mod.get(A).should.be.an.instanceOf(A);
         });
         it('returns an instance of a class with dependencies', function () {
             var temp2, x;
