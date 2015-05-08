@@ -1,3 +1,5 @@
+"use strict";
+
 var Injector, expect, should;
 
 should = require('chai').should();
@@ -19,9 +21,12 @@ describe('Injector', function () {
         return should.exist(Injector);
     });
     describe('get()', function () {
-        it('returns an instance of a class', function () {
-            class A {}
-            return this.mod.get(A).should.be.an.instanceOf(A);
+        it('returns an instance of a class with prototypes', function () {
+            class A {
+                print () { return 'hello'}
+            }
+            this.mod.get(A).should.be.an.instanceOf(A);
+            this.mod.get(A).print().should.equal('hello')
         });
         it('returns an instance of a class with dependencies', function () {
             var temp2, x;
