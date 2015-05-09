@@ -1,56 +1,32 @@
 #NODE-IOC - Inversion of control
-Heavly inspired by [angular/di.js](https://github.com/angular/di.js).
+A version which works only with the latest version of io.js
 
-##Advantages
-- A ridiculously simple dependency injection module, perfect for unit-testing.
-- Not making you move away from the default `require` feature of nodejs.
-- Supports inheritence ie. base classes will automatically be injected into the prototype at the time of instantiations.
-- No need for registering modules. Auto detects dependencies using annotations.
-- Browser support available, checkout the `dist` folder.
+##Example
+A container is a object which holds the relationships between various components and their life cycle. Create a container as follows ~
 
 ```js
-Injector = require('node-ioc')
-
-//static function for annotation
-annotate = Injector.annotate
-
-function A (){}
-A.prototype.print = function (){
-    return "World"
-}
-
-function B (){}
-
-function C (){}
-
-function Q (){}
-
-//Access base class methods also
-Q.prototype.print = function (){
-    return "Hello" + Q.__super__.print(); // Hello World; works best with coffeescript
-}
-
-annotate(Q)
-    .inject(B, C) //Dependcies
-    .extends(A) // Inheritence
-    .resolveAs(function(q, ioc){
-        //q: instance of Q
-        //ioc: instance of current Injector
-        //Really powerful when you want to do something everytime its injected
-    })
-    .asSingleton() //Default: Transient
-
-
-ioc = new Injector();
-ioc.providerFor(Q, QMocked); //Useful for mocking classes
-var q = ioc.get(Q); //Instantiate Q
+var IOC = require('node-ioc')
+var container = new IOC()
 ```
 
-##Development
-Build .js version for browsers
 
-```bash
-browserify ioc.coffee --standalone IOC -t coffeeify  > dist/ioc.js
+##Component Registration
+```js
+container.registerInstance({}).as(ClassName1)
+container.register((c)=> c.resolve(a)).as(ClassName2).singleton()
+container.registerType(ClassName1, ClassName2).as(ClassName)
 ```
 
-Want more? Create a ticket :)
+##Component Resolution
+```js
+container.resolve(ClassName)
+```
+
+##Features
+0. Support for es6 features
+0. Support for cyclic dependency
+0. Support for Singletons
+0. Support for Container as a dependency 
+0. Support for custom factory (use *container.register(<lambda>)*)
+0. Support for instance (use *container.registerInstance(<Object>)*)
+0. Support for class (use *container.registerWithTypes(<class1>, <class2>, <class3> ...)*)
