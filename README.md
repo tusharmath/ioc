@@ -1,6 +1,8 @@
 #NODE-IOC - Inversion of control
 Heavly inspired by [angular/di.js](https://github.com/angular/di.js).
 
+[Version 2.0: ES6 support](https://github.com/tusharmath/ioc/tree/v2)
+
 ##Advantages
 - A ridiculously simple dependency injection module, perfect for unit-testing.
 - Not making you move away from the default `require` feature of nodejs.
