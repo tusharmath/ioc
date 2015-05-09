@@ -41,11 +41,20 @@ describe('Container', function () {
             a.b.should.be.an.instanceOf(B)
         })
     })
+    describe('registerWithType()', function (){
+        it('resolves', function () {
+            class A{constructor(b){this.b = b}}
+            class B{}
+            this.container.registerInstance(new B).as(B)
+            this.container.registerWithTypes(B).as(A)
+            this.container.resolve(A).b.should.be.an.instanceOf(B)
+        })
+    })
 
     it('handles inheritence', function () {
         class Base {}
         class Child extends Base {}
-        this.container.registerInstance(new Child).as(Child)
+        this.container.registerInstance(new Child(1,2)).as(Child)
         this.container.resolve(Child).should.be.an.instanceOf(Base)
     })
     it('resolves a singleton class', function () {
@@ -63,6 +72,26 @@ describe('Container', function () {
         }
         this.container.register(c=> new X().a).as(X)
         this.container.resolve(X).should.equal('A')
+    })
+
+    it('handles self dependency', function (){
+        class A {
+            constructor (c) {
+                this.c = c
+            }
+        }
+        this.container.registerWithTypes(Container).as(A)
+        this.container.resolve(A).c.should.equal(this.container)
+    })
+
+    it('handles cyclic dependencies', function (){
+        class A {}
+        class B {}
+        this.container.registerWithTypes(A).as(B)
+        this.container.registerWithTypes(B).as(A)
+        expect(function (){
+            this.container.resolve(A)
+        }.bind(this)).to.throw('cyclic dependency detected at: A')
     })
 
 });
