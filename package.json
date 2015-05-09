@@ -2,7 +2,7 @@
   "name": "node-ioc",
   "version": "2.0.1",
   "description": "a simple ioc container",
-  "main": "dist/ioc",
+  "main": "lib/ioc",
   "scripts": {
     "test": "mocha"
   },
