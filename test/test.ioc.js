@@ -22,29 +22,47 @@ describe('Container', function () {
         }.bind(this))
             .to.Throw('class has not been registered')
     })
-
-    it('resolves a class', function () {
-        this.container.register(A)
-        this.container.resolve(A).should.be.an.instanceOf(A)
+    describe('registerInstance()', function (){
+        it('resolves', function () {
+            const a = new A()
+            this.container.registerInstance(a).as(A)
+            this.container.resolve(A).should.equal(a)
+        })
     })
 
-    it('resolves with injections', function () {
-        class X {
-            constructor(a) {
-                this.a = a
-            }
-        }
-        this.container.register(A)
-        this.container.register(X).inject(A)
-        this.container.resolve(X).a.should.be.an.instanceOf(A)
+    describe('register()', function (){
+        it('resolves', function () {
+            class B{}
+            class A{constructor(b){this.b = b}}
+            this.container.registerInstance(new B).as(B)
+            this.container.register(c => new A(c.resolve(B))).as(A)
+            var a = this.container.resolve(A)
+            a.should.be.an.instanceOf(A)
+            a.b.should.be.an.instanceOf(B)
+        })
+    })
+
+    it('handles inheritence', function () {
+        class Base {}
+        class Child extends Base {}
+        this.container.registerInstance(new Child).as(Child)
+        this.container.resolve(Child).should.be.an.instanceOf(Base)
     })
     it('resolves a singleton class', function () {
-        class X {
-        }
-        this.container.register(X).asSingleton()
+        class X {}
+        this.container.register(c=> new X).as(X).singleton()
         var x1 = this.container.resolve(X),
             x2 = this.container.resolve(X)
         x1.should.equal(x2)
+    })
+    it('resolves properties', function () {
+        class X {
+            constructor () {
+                this.a = 'A'
+            }
+        }
+        this.container.register(c=> new X().a).as(X)
+        this.container.resolve(X).should.equal('A')
     })
 
 });
