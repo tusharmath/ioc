@@ -22,10 +22,10 @@ describe('Container', function () {
         }.bind(this))
             .to.Throw('class has not been registered')
     })
-    describe('registerInstance()', function (){
+    describe('registerWithInstance()', function (){
         it('resolves', function () {
             const a = new A()
-            this.container.registerInstance(a).as(A)
+            this.container.registerWithInstance(a).as(A)
             this.container.resolve(A).should.equal(a)
         })
     })
@@ -34,7 +34,7 @@ describe('Container', function () {
         it('resolves', function () {
             class B{}
             class A{constructor(b){this.b = b}}
-            this.container.registerInstance(new B).as(B)
+            this.container.registerWithInstance(new B).as(B)
             this.container.register(c => new A(c.resolve(B))).as(A)
             var a = this.container.resolve(A)
             a.should.be.an.instanceOf(A)
@@ -45,7 +45,7 @@ describe('Container', function () {
         it('resolves', function () {
             class A{constructor(b){this.b = b}}
             class B{}
-            this.container.registerInstance(new B).as(B)
+            this.container.registerWithInstance(new B).as(B)
             this.container.registerWithTypes(B).as(A)
             this.container.resolve(A).b.should.be.an.instanceOf(B)
         })
@@ -54,7 +54,7 @@ describe('Container', function () {
     it('handles inheritence', function () {
         class Base {}
         class Child extends Base {}
-        this.container.registerInstance(new Child(1,2)).as(Child)
+        this.container.registerWithInstance(new Child(1,2)).as(Child)
         this.container.resolve(Child).should.be.an.instanceOf(Base)
     })
     it('resolves a singleton class', function () {
