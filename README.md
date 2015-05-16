@@ -1,5 +1,5 @@
 #NODE-IOC - Inversion of control
-A version which works only with the latest version of io.js
+(Everything that I needed)
 
 ##Example
 A container is a object which holds the relationships between various components and their life cycle. Create a container as follows ~
