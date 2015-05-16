@@ -2,14 +2,15 @@
   "name": "node-ioc",
   "version": "2.0.1",
   "description": "a simple ioc container",
-  "main": "lib/ioc",
+  "main": "dist/ioc",
   "scripts": {
     "test": "mocha"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "chai": "^2.2.0"
+    "chai": "^2.2.0",
+    "es6ify": "^1.6.0"
   },
   "keywords": [
     "ioc",
