@@ -1,4 +1,4 @@
-browserify ioc.coffee --standalone IOC -t coffeeify  > dist/ioc.js
+browserify ./lib/ioc.js --standalone IOC -t es6ify > dist/ioc.js
 git add ./dist/ioc.js
 git commit -m "update dist"
 mversion patch -m
