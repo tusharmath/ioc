@@ -13,7 +13,7 @@ var container = new IOC()
 ##Component Registration
 ```js
 container.registerInstance({}).as(ClassName1)
-container.register((c)=> c.resolve(a)).as(ClassName2).singleton()
+container.register(c=> c.resolve(a)).as(ClassName2).singleton()
 container.registerType(ClassName1, ClassName2).as(ClassName)
 ```
 
