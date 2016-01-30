@@ -1,16 +1,17 @@
 {
   "name": "node-ioc",
-  "version": "2.0.3",
   "description": "a simple ioc container",
   "main": "lib/ioc",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
-  "author": "",
+  "author": "tushar mathur <tusharmath@gmail.com>",
   "license": "ISC",
   "devDependencies": {
     "chai": "^2.2.0",
-    "es6ify": "^1.6.0"
+    "cz-conventional-changelog": "^1.1.5",
+    "semantic-release": "^4.3.5"
   },
   "keywords": [
     "ioc",
@@ -19,5 +20,13 @@
     "unit testing",
     "mock"
   ],
-  "repository": "git@github.com:tusharmath/ioc.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tusharmath/ioc.git"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
 }
