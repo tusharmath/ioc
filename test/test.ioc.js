@@ -1,114 +1,107 @@
 'use strict'
 
-var should = require('chai').should()
+const test = require('ava')
+const Container = require('../lib/ioc')
 
-var expect = require('chai').expect
-
-var Container = require('../lib/ioc')
-
-describe('Container', function () {
+test('throws as unregisterd', t => {
+  const container = new Container()
   class A {
   }
-  class B extends A {
+  t.throws(() => container.resolve(A), 'class has not been registered: A')
+})
+
+test('registerWithInstance()', t => {
+  const container = new Container()
+  class A {
   }
-  class C {
+  const a = 10000
+  container.registerWithInstance(a).as(A)
+  t.is(container.resolve(A), a)
+})
+
+test('register()', t => {
+  const container = new Container()
+  class B {
   }
-  beforeEach(function () {
-    this.container = new Container()
-  })
-  it('throws as unregisterd', function () {
-    expect(function () {
-      this.container.resolve(A)
-    }.bind(this))
-      .to.Throw('class has not been registered')
-  })
-  describe('registerWithInstance()', function () {
-    it('resolves', function () {
-      const a = new A()
-      this.container.registerWithInstance(a).as(A)
-      this.container.resolve(A).should.equal(a)
-    })
-  })
+  class A {
+    constructor(b) {
+      this.b = b
+    }
+  }
+  container.registerWithInstance(new B()).as(B)
+  container.register(function (c) {
+    return new A(c.resolve(B))
+  }).as(A)
+  const a = container.resolve(A)
+  t.true(a instanceof A)
+  t.true(a.b instanceof B)
+})
 
-  describe('register()', function () {
-    it('resolves', function () {
-      class B {
-      }
-      class A {
-        constructor(b) {this.b = b}
-      }
-      this.container.registerWithInstance(new B).as(B)
-      this.container.register(function (c) {
-        return new A(c.resolve(B))
-      }).as(A)
-      var a = this.container.resolve(A)
-      a.should.be.an.instanceOf(A)
-      a.b.should.be.an.instanceOf(B)
-    })
-  })
-  describe('registerWithType()', function () {
-    it('resolves', function () {
-      class A {
-        constructor(b) {this.b = b}
-      }
-      class B {
-      }
-      this.container.registerWithInstance(new B).as(B)
-      this.container.registerWithTypes(B).as(A)
-      this.container.resolve(A).b.should.be.an.instanceOf(B)
-    })
-  })
+test('registerWithType()', t => {
+  const container = new Container()
+  class A {
+    constructor(b) {this.b = b}
+  }
+  class B {
+  }
+  container.registerWithInstance(new B).as(B)
+  container.registerWithTypes(B).as(A)
+  t.true(container.resolve(A).b instanceof B)
+})
 
-  it('handles inheritence', function () {
-    class Base {
-    }
-    class Child extends Base {
-    }
-    this.container.registerWithInstance(new Child(1, 2)).as(Child)
-    this.container.resolve(Child).should.be.an.instanceOf(Base)
-  })
-  it('resolves a singleton class', function () {
-    class X {
-    }
-    this.container.register(function () {
-      return new X()
-    }).as(X).singleton()
-    var x1 = this.container.resolve(X),
-      x2 = this.container.resolve(X)
-    x1.should.equal(x2)
-  })
-  it('resolves properties', function () {
-    class X {
-      constructor() {
-        this.a = 'A'
-      }
-    }
-    this.container.register(function () {
-      return new X().a
-    }).as(X)
-    this.container.resolve(X).should.equal('A')
-  })
+test('handles inheritence', t => {
+  const container = new Container()
+  class Base {
+  }
+  class Child extends Base {
+  }
+  container.registerWithInstance(new Child(1, 2)).as(Child)
+  t.true(container.resolve(Child) instanceof Base)
+})
 
-  it('handles self dependency', function () {
-    class A {
-      constructor(c) {
-        this.c = c
-      }
-    }
-    this.container.registerWithTypes(Container).as(A)
-    this.container.resolve(A).c.should.equal(this.container)
-  })
+test('resolves a singleton class', t => {
+  const container = new Container()
+  class X {
+  }
+  container.register(function () {
+    return new X()
+  }).as(X).singleton()
+  const x1 = container.resolve(X)
+  const x2 = container.resolve(X)
+  t.is(x1, x2)
+})
 
-  it('handles cyclic dependencies', function () {
-    class A {
+test('resolves properties', t => {
+  const container = new Container()
+  class X {
+    constructor() {
+      this.a = 'A'
     }
-    class B {
-    }
-    this.container.registerWithTypes(A).as(B)
-    this.container.registerWithTypes(B).as(A)
-    expect(function () {
-      this.container.resolve(A)
-    }.bind(this)).to.throw('cyclic dependency detected at: A')
-  })
+  }
+  container.register(function () {
+    return new X().a
+  }).as(X)
+  t.is(container.resolve(X), 'A')
+})
 
+test('handles self dependency', t => {
+  const container = new Container()
+  class A {
+    constructor(c) {
+      this.c = c
+    }
+  }
+  container.registerWithTypes(Container).as(A)
+  t.is(container.resolve(A).c, container)
+})
+
+test('handles cyclic dependencies', t => {
+  const container = new Container()
+  class A {
+  }
+  class B {
+  }
+  container.registerWithTypes(A).as(B)
+  container.registerWithTypes(B).as(A)
+  t.throws(() => container.resolve(A), 'cyclic dependency detected at: A')
 })

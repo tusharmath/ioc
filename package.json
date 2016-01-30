@@ -3,13 +3,13 @@
   "description": "a simple ioc container",
   "main": "lib/ioc",
   "scripts": {
-    "test": "mocha",
+    "test": "ava",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "author": "tushar mathur <tusharmath@gmail.com>",
   "license": "ISC",
   "devDependencies": {
-    "chai": "^2.2.0",
+    "ava": "^0.11.0",
     "cz-conventional-changelog": "^1.1.5",
     "semantic-release": "^4.3.5"
   },
@@ -28,5 +28,8 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "dependencies": {
+    "lodash": "^4.1.0"
   }
 }
