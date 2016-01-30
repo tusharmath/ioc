@@ -1,4 +1,4 @@
-#NODE-IOC - Inversion of control [![Travis](https://img.shields.io/travis/tusharmath/ioc.svg)]() [![npm](https://img.shields.io/npm/v/node-ioc.svg)]()
+#NODE-IOC - Inversion of control [![Travis](https://img.shields.io/travis/tusharmath/ioc.svg)](https://travis-ci.org/tusharmath/ioc) [![npm](https://img.shields.io/npm/v/node-ioc.svg)](https://www.npmjs.com/package/node-ioc)
 
 
 ##Example
